@@ -1,0 +1,9 @@
+sitemap demo label="Smart HOME"
+{
+    Frame
+    {
+        Switch item=light_All icon="light" label="Cool&Warm"
+    }
+    Switch item=light_id0 icon="light" label="Cool light"
+    Switch item=light_id1 icon="light" label="Warm light"
+}
