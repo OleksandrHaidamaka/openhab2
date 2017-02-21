@@ -1,6 +1,7 @@
 /* active groups */
-Group:Switch:OR(ON, OFF)        Lights      "All Lights [(%d)]"
+Group:Switch:OR(ON, OFF)  light_All      "[(%d)]"
 
-Switch light_id0
-Switch light_id1
-Switch light_All
+
+/* Lights */
+Switch light_id0 "Cool" (dfg, light_All)
+Switch light_id1 "Warm" (ret, light_All)
