@@ -1,9 +1,9 @@
 sitemap demo label="Smart HOME"
 {
-    Frame label="Lights"
+    Frame label="Hall lights"
     {
-        Switch item=light_All icon="light" label="ALL" mappings=[OFF="OFF", ON="ON"]
-        Switch item=light_id0 icon="light" label="Cool"
-    	Switch item=light_id1 icon="light" label="Warm"
+        Switch item=Lights label="ALL" mappings=[OFF="OFF", ON="ON"]
+        Switch item=light_id0 label="Cool"
+    	Switch item=light_id1 label="Warm"
     }
 }
