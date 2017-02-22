@@ -1,8 +1,8 @@
 Group gHL   // Group hall light
 
 /* active groups */
-Group:Switch:OR(ON, OFF) Lights "[ON(%d)]"  <light>
+Group:Switch:OR(ON, OFF) Lights "[(%d)]"  <light>
 
 /* Lights */
-Switch light_id0 "Cool" <light> (gHL, Lights) 
-Switch light_id1 "Warm" <light> (gHL, Lights)
+Switch light_id0 <light> (gHL, Lights)
+Switch light_id1 <light> (gHL, Lights)

@@ -1,9 +1,9 @@
-sitemap demo label="Smart HOME"
+sitemap demo label="Умный ДОМ"
 {
-    Frame label="Hall lights"
+    Frame label="Люстра в зале"
     {
-        Switch item=Lights label="ALL" mappings=[OFF="OFF", ON="ON"]
-        Switch item=light_id0 label="Cool"
-    	Switch item=light_id1 label="Warm"
+        Switch item=Lights label="Весь" mappings=[OFF="Выкл", ON="Вкл"]
+        Switch item=light_id0 label="Холодный"
+    	Switch item=light_id1 label="Теплый"
     }
 }
