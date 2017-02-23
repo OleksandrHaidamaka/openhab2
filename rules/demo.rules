@@ -1,9 +1,44 @@
-rule "mqtt publish"
+rule "mqtt_pub"
+when
+    Item light_id0 received command
+then
+    if(receivedCommand == ON)
+        mqtt_pub.sendCommand("{\"light_id\": 0, \"state\": 1}")
+    else if(receivedCommand == OFF) 
+        mqtt_pub.sendCommand("{\"light_id\": 0, \"state\": 0}")
+end
+
+rule "mqtt_pub"
 when
     Item light_id1 received command
 then
     if(receivedCommand == ON)
         mqtt_pub.sendCommand("{\"light_id\": 1, \"state\": 1}")
-    else
+    else if(receivedCommand == OFF) 
         mqtt_pub.sendCommand("{\"light_id\": 1, \"state\": 0}")
+end
+
+rule "mqtt_sub"
+when
+    Item mqtt_sub received update
+then
+    var json = mqtt_sub.state.toString
+    var light_id = transform("JSONPATH","$.light_id",json)
+    var state = transform("JSONPATH","$.state",json)   
+    
+    switch(light_id)
+    {
+        case "0": 
+        switch(state)
+        {
+            case "0": postUpdate(light_id0, OFF)
+            case "1": postUpdate(light_id0, ON)
+        }
+        case "1": 
+        switch(state)
+        {
+            case "0": postUpdate(light_id1, OFF)
+            case "1": postUpdate(light_id1, ON)
+        }
+    }
 end
