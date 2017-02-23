@@ -4,5 +4,5 @@ Group gHL   // Group hall light
 Group:Switch:OR(ON, OFF) Lights "[(%d)]"  <light>
 
 /* Lights */
-Switch light_id0 <light> (gHL, Lights)
-Switch light_id1 <light> (gHL, Lights)
+Switch light_id0 <light> (gHL, Lights) {mqtt=">[broker:home/toIoT:*:MAP(test.map)]"}
+Switch light_id1 <light> (gHL, Lights) {mqtt=">[broker:home/toIoT:*:MAP(test.map)]"}
