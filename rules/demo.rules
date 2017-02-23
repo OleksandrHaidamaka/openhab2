@@ -1,9 +1,9 @@
-//rule "Light_All"
-//	when
-//		Item light_All received command or
-//		Item light_All received command
-//	then
-//        postUpdate(light_id0, "ON")
-//        sendCommand(light_id0, receivedCommand)
-//		sendCommand(light_id1, receivedCommand)	
-//end
+rule "mqtt publish"
+when
+    Item light_id1 received command
+then
+    if(receivedCommand == ON)
+        mqtt_pub.sendCommand("{\"light_id\": 1, \"state\": 1}")
+    else
+        mqtt_pub.sendCommand("{\"light_id\": 1, \"state\": 0}")
+end

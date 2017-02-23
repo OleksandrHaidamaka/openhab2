@@ -1,2 +1,2 @@
-ON={"command": "switchlight", "idx": 10, "switchcmd": "On"}
+ON={1}
 OFF={"command": "switchlight", "idx": 10, "switchcmd": "On"}
