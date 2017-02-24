@@ -2,9 +2,8 @@
 Group:Switch:OR(ON, OFF) Lights "[(%d)]"  <light>
 
 /* Lights */
-Switch light_id0 <light> (Lights)
-Switch light_id1 <light> (Lights)
+Switch light_id0 <light> (Lights) {mqtt=">[broker:toIoT:command:*:MAP(test.map)]"}
+Switch light_id1 <light> (Lights) {mqtt=">[broker:toIoT:command:*:MAP(test.map)]"}
 
 /* MQTT binding */
-String mqtt_pub "[%s]" {mqtt=">[broker:toIoT:command:*:default]"}
 String mqtt_sub "[%s]" {mqtt="<[broker:fromIoT:state:default]"}

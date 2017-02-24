@@ -1,0 +1,2 @@
+ON={"light_id": 0, "state": 1}
+OFF={"light_id": 0, "state": 0}
