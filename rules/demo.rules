@@ -1,24 +1,40 @@
-rule "mqtt_sub"
+rule "MQTT sub"
 when
-    Item mqtt_sub received update
+    Item mqtt_sub received update 
 then
     var json = mqtt_sub.state.toString
-    var light_id = transform("JSONPATH","$.light_id",json)
+    
+    var id = transform("JSONPATH","$.light_id",json)
     var state = transform("JSONPATH","$.state",json)   
     
-    switch(light_id)
-    {
-        case "0": 
-        switch(state)
-        {
-            case "0": postUpdate(light_id0, OFF)
-            case "1": postUpdate(light_id0, ON)
-        }
-        case "1": 
-        switch(state)
-        {
-            case "0": postUpdate(light_id1, OFF)
-            case "1": postUpdate(light_id1, ON)
-        }
-    }
+    postUpdate("light_id"+id, state) 
+    say("qwe")
+end
+
+rule "Voice control"
+when
+    Item VoiceCommand received update 
+then
+    var command = VoiceCommand.state.toString.toLowerCase        
+    var String state = null;
+    var turn_all = true
+    
+    if(command.contains("вкл")) state = "ON"
+    else if(command.contains("выкл")) state = "OFF" 
+        
+    if(command.contains("свет") && state != null)
+    {    	 
+    	if (command.contains("холод"))
+    	{     		
+    		sendCommand("light_id0", state)	    	
+    		turn_all = false	
+    	}	    	
+    	if (command.contains("тепл"))
+    	{ 	    		
+    		sendCommand("light_id1", state)
+    		turn_all = false	    		
+    	}        		
+    	
+    	if(turn_all) sendCommand("light_all", state)		  	    		       	   	
+    } 
 end

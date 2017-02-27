@@ -2,7 +2,7 @@ sitemap demo label="Умный ДОМ"
 {
     Frame label="Люстра в зале"
     {
-        Switch item=Lights label="Весь" mappings=[OFF="Выкл", ON="Вкл"]
+        Switch item=light_all label="Весь" mappings=[OFF="Выкл", ON="Вкл"]
         Switch item=light_id0 label="Холодный"
     	Switch item=light_id1 label="Теплый"
     }
