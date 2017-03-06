@@ -1,2 +1,2 @@
-ON={"light_id": 1, "state": 1}
-OFF={"light_id": 1, "state": 0}
+ON={"light_id": 1, "state": "ON"}
+OFF={"light_id": 1, "state": "OFF"}

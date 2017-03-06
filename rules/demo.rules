@@ -18,6 +18,8 @@ then
     var command = VoiceCommand.state.toString.toLowerCase        
     var String state = null;
     var turn_all = true
+    say("Hello world")
+    say("Привет мир")
     
     if(command.contains("вкл")) state = "ON"
     else if(command.contains("выкл")) state = "OFF" 
