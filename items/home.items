@@ -1,0 +1,12 @@
+/* active groups */
+Group:Switch:OR(ON, OFF) light_all "[(%d)]"  <light>
+
+/* ALL lights */
+Switch light_id0 <light> (light_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id0.map)]"}
+Switch light_id1 <light> (light_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id1.map)]"}
+
+/* MQTT binding */
+String mqtt_sub "[%s]" {mqtt="<[<broker>:fromIoT/esp_id0:state:default]"}
+
+/* Voice binding */
+String VoiceCommand

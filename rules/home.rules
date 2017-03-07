@@ -1,0 +1,42 @@
+rule "MQTT sub"
+when
+    Item mqtt_sub received update 
+then
+    var json = mqtt_sub.state.toString
+    
+    var id = transform("JSONPATH","$.light_id",json)
+    var state = transform("JSONPATH","$.state",json)   
+    
+    postUpdate("light_id"+id, state) 
+    say("qwe")
+end
+
+rule "Voice control"
+when
+    Item VoiceCommand received update 
+then
+    var command = VoiceCommand.state.toString.toLowerCase        
+    var String state = null;
+    var turn_all = true
+    say("Hello world")
+    say("Привет мир")
+    
+    if(command.contains("вкл")) state = "ON"
+    else if(command.contains("выкл")) state = "OFF" 
+        
+    if(command.contains("свет") && state != null)
+    {    	 
+    	if (command.contains("холод"))
+    	{     		
+    		sendCommand("light_id0", state)	    	
+    		turn_all = false	
+    	}	    	
+    	if (command.contains("тепл"))
+    	{ 	    		
+    		sendCommand("light_id1", state)
+    		turn_all = false	    		
+    	}        		
+    	
+    	if(turn_all) sendCommand("light_all", state)		  	    		       	   	
+    } 
+end
