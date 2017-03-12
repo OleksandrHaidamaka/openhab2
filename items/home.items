@@ -1,12 +1,15 @@
+Group light_all <light>
+
 /* active groups */
-Group:Switch:OR(ON, OFF) light_all "[(%d)]"  <light>
+Group:Switch:OR(ON, OFF) hall_light_all        "[(%d)]"  <light> (light_all)
+Group:Switch:OR(ON, OFF) hall_light_luster_all "[(%d)]"  <light> (hall_light_all)
 
-/* ALL lights */
-Switch light_id0 <light> (light_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id0.map)]"}
-Switch light_id1 <light> (light_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id1.map)]"}
+/* Hall lights */
+Switch hall_light_luster_0 "Холодный" <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id0.map)]"}
+Switch hall_light_luster_1 "Теплый"   <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp_id0:command:*:MAP(light_id1.map)]"}
 
-/* MQTT binding */
-String mqtt_sub "[%s]" {mqtt="<[<broker>:fromIoT/esp_id0:state:default]"}
+/* MQTT binding for esp_id0*/
+String mqtt_sub_esp_id0 "[%s]" {mqtt="<[<broker>:fromIoT/esp_id0:state:default]"}
 
 /* Voice binding */
 String VoiceCommand

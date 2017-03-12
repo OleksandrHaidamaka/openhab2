@@ -1,42 +1,91 @@
-rule "MQTT sub"
+rule "MQTT SUB ESP ID0"
 when
-    Item mqtt_sub received update 
+    Item mqtt_sub_esp_id0 received update 
 then
-    var json = mqtt_sub.state.toString
+    var json = mqtt_sub_esp_id0.state.toString
     
     var id = transform("JSONPATH","$.light_id",json)
     var state = transform("JSONPATH","$.state",json)   
     
-    postUpdate("light_id"+id, state) 
-    say("qwe")
+    postUpdate("hall_light_luster_"+id, state) 
 end
 
 rule "Voice control"
 when
     Item VoiceCommand received update 
 then
-    var command = VoiceCommand.state.toString.toLowerCase        
-    var String state = null;
-    var turn_all = true
-    say("Hello world")
-    say("Привет мир")
+    var command = VoiceCommand.state.toString.toLowerCase   
+    var String item = null     
+    var String state = null
+    var String answer = null    
+    var valid_cmd = false   
     
-    if(command.contains("вкл")) state = "ON"
-    else if(command.contains("выкл")) state = "OFF" 
-        
-    if(command.contains("свет") && state != null)
-    {    	 
-    	if (command.contains("холод"))
-    	{     		
-    		sendCommand("light_id0", state)	    	
-    		turn_all = false	
-    	}	    	
-    	if (command.contains("тепл"))
-    	{ 	    		
-    		sendCommand("light_id1", state)
-    		turn_all = false	    		
-    	}        		
+    // ON/OFF 
+    if(command.contains("вкл"))
+    { 
+    	state = "ON"
+    	answer = "включаю"
+    }    
+    else if(command.contains("выкл"))
+    { 
+    	state = "OFF"
+    	answer = "выключаю" 	
+    }
+    
+    // Where
+    if(command.contains("зал") && state != null)
+    {    
+    	item = "hall_"
+    	answer += " в зале"
     	
-    	if(turn_all) sendCommand("light_all", state)		  	    		       	   	
-    } 
+	    // What
+	    if(command.contains("свет"))
+	    {
+	    	valid_cmd = true
+	    	
+	    	item += "light_"
+	    	answer += " свет"
+	    	
+	    	if(command.contains("бра"))
+	    	{
+				// TODO     		
+	    	}	    	
+	    	else if(command.contains("весь"))
+	    	{
+	    		item += "all"
+	    		answer += " весь"    		
+	    	}
+	    	else if(command.contains("холод"))
+	    	{
+	    		item += "luster_0"
+	    		answer += " холодный"     		
+	    	}
+	    	else if(command.contains("тепл"))
+	    	{
+	    		item += "luster_1"
+	    		answer += " теплый"      		
+	    	}
+	    	else 
+	    	{
+	    		item += "luster_all"
+	    		answer += " " 
+	    	}
+	    }
+	    else if(command.contains("подсвет"))
+	    {
+	    	valid_cmd = true
+	    	// TODO
+	    }
+    }
+    else if(command.contains("спал") && state != null)
+    {
+      	// TODO
+    }                           	        		    		  	    		       	      
+    
+    if(valid_cmd == true)
+    {
+    	say(answer)
+	    sendCommand(item, state)
+	}
+	else say("неизвестная команда")
 end
