@@ -10,6 +10,7 @@ Switch hall_light_luster_1 "Теплый"   <light> (hall_light_luster_all) {mqt
 
 /* MQTT binding for esp_id0*/
 String mqtt_sub_esp_id0 "[%s]" {mqtt="<[<broker>:fromIoT/esp_id0:state:default]"}
+String mqtt_pub_esp_id0 "[%s]" {mqtt=">[<broker>:toIoT/esp_id0:command:*:default]"}
 
 /* Voice binding */
 String VoiceCommand

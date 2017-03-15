@@ -1,11 +1,20 @@
-rule "MQTT SUB ESP ID0"
+rule "Initialize light states"
+when
+	System started
+then
+	say("Добро пожаловать в умный дом")
+	sendCommand(mqtt_pub_esp_id0, "update")
+end
+
+rule "MQTT sub esp_id0"
 when
 	Item mqtt_sub_esp_id0 received update
 then
 	var json = mqtt_sub_esp_id0.state.toString
 	var id = transform("JSONPATH","$.light_id",json)
 	var state = transform("JSONPATH","$.state",json)
-	postUpdate("hall_light_luster_"+id, state)
+	
+	if((id != null) && (state != null)) postUpdate("hall_light_luster_"+id, state)
 end
 
 rule "Voice control"
