@@ -1,9 +1,28 @@
+var String set_voise = "OFF"
+
 rule "Initialize light states"
 when
 	System started
 then
-	say("Добро пожаловать в умный дом")
+	say("добро пожаловать в умный дом")
 	sendCommand(mqtt_pub_esp_id0, "update")
+	postUpdate(setting_voice, set_voise)
+end
+
+rule "Setting_voice"
+when
+	Item setting_voice received command
+then
+	if(receivedCommand == ON)
+	{
+		set_voise = "ON"
+		say("голосовая функция включена")
+	}
+	else
+	{ 
+		set_voise = "OFF"
+		say("голосовая функция выключена")
+	}
 end
 
 rule "MQTT sub esp_id0"
@@ -84,10 +103,13 @@ then
 		// TODO
 	}
 
-	if(answer == null) say("неизвестная команда")
+	if(answer == null)
+	{
+		if(set_voise == "ON") say("неизвестная команда")
+	}
 	else
 	{
-		say(answer_beg + " " + answer)
+		if(set_voise == "ON") say(answer_beg + " " + answer)
 		sendCommand(item, state)
 	}
 end

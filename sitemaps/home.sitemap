@@ -3,15 +3,19 @@ sitemap home label="Умный ДОМ"
 	Text label="Зал" icon="parents_1_1"
 	{
 		Text label="Свет" icon="light"
-		{	
-			Switch item=hall_light_all   label="Весь" mappings=[OFF="OFF", ON="ON"]	
+		{
+			Switch item=hall_light_all   label="Весь" mappings=[OFF="OFF", ON="ON"]
 			Switch item=hall_light_luster_all label="Люстра" mappings=[OFF="OFF", ON="ON"]
-			Group  item=hall_light_luster_all label="Выбор"				
-		}	
+			Group  item=hall_light_luster_all label="Выбор"
+		}
 		Text label="Подсветка" icon="colorlight"
-		{	
-			Slider item=hall_backlight label="Подсветка"	
-		}			
-
+		{
+			Slider item=hall_backlight label="Подсветка"
+		}
+	}
+	
+	Text label="Настройки" icon="chart"
+	{
+		Switch item=setting_voice
 	}
 }

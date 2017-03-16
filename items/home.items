@@ -14,3 +14,6 @@ String mqtt_pub_esp_id0 "[%s]" {mqtt=">[<broker>:toIoT/esp_id0:command:*:default
 
 /* Voice binding */
 String VoiceCommand
+
+/* Settings */
+Switch setting_voice "Голос" <switch>
