@@ -8,10 +8,6 @@ sitemap home label="Умный ДОМ"
 			Switch item=hall_light_luster_all label="Люстра" mappings=[OFF="OFF", ON="ON"]
 			Group  item=hall_light_luster_all label="Выбор"
 		}
-		Text label="Подсветка" icon="colorlight"
-		{
-			Slider item=hall_backlight label="Подсветка"
-		}
 	}
 	
 	Text label="Настройки" icon="chart"
