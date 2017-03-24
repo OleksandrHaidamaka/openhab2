@@ -6,7 +6,7 @@ when
 then
 	say("добро пожаловать в умный дом")
 	sendCommand(mqtt_pub_esp0, "update")
-	postUpdate(setting_voice, set_voise)
+	sendCommand(setting_voice, set_voise)
 end
 
 rule "Setting_voice"
@@ -27,18 +27,18 @@ end
 
 rule "MQTT sub esp0"
 when
-	Item mqtt_sub_esp0 received update
+	Item mqtt_sub_esp0 received command
 then
 	var json = mqtt_sub_esp0.state.toString
 	var id = transform("JSONPATH","$.light",json)
 	var state = transform("JSONPATH","$.state",json)
 	
-	if((id != null) && (state != null)) postUpdate("hall_light_luster_"+id, state)
+	if((id != null) && (state != null)) sendCommand("hall_light_luster_"+id, state)
 end
 
 rule "Voice control"
 when
-	Item VoiceCommand received update
+	Item VoiceCommand received command
 then
 	var command = VoiceCommand.state.toString.toLowerCase
 	var String item = null

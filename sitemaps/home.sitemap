@@ -13,5 +13,6 @@ sitemap home label="Умный ДОМ"
 	Text label="Настройки" icon="chart"
 	{
 		Switch item=setting_voice
+		Slider item=setting_led
 	}
 }
