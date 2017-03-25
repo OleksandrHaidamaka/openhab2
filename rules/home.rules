@@ -29,11 +29,15 @@ rule "MQTT sub esp0"
 when
 	Item mqtt_sub_esp0 received command
 then
+	/* update light statuses */
 	var json = mqtt_sub_esp0.state.toString
 	var id = transform("JSONPATH","$.light",json)
 	var state = transform("JSONPATH","$.state",json)
-	
 	if((id != null) && (state != null)) sendCommand("hall_light_luster_"+id, state)
+	
+	/* update LED (esp8266) status */
+	var dim = transform("JSONPATH","$.led",json)
+	if(dim != null) sendCommand("setting_led", dim)
 end
 
 rule "Voice control"
