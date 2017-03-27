@@ -4,12 +4,9 @@ Group light_all <light>
 Group:Switch:OR(ON, OFF) hall_light_all        "[(%d)]"  <light> (light_all)
 Group:Switch:OR(ON, OFF) hall_light_luster_all "[(%d)]"  <light> (hall_light_all)
 
-/* ESP led */
-Dimmer setting_led "LED (esp8266)" <slider> {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(led.map)]"}
-
 /* Hall lights */
-Switch hall_light_luster_0 "Холодный" <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(light0.map)]"}
-Switch hall_light_luster_1 "Теплый"   <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(light1.map)]"}
+Switch hall_light_luster_0 <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(light0.map)]"}
+Switch hall_light_luster_1 <light> (hall_light_luster_all) {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(light1.map)]"}
 
 /* MQTT binding for esp_id0*/
 String mqtt_sub_esp0 "[%s]" {mqtt="<[<broker>:fromIoT/esp0:state:default]"}
@@ -18,5 +15,7 @@ String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:toIoT/esp0:command:*:default]"}
 /* Voice binding */
 String VoiceCommand
 
-/* Settings */
-Switch setting_voice "Голос" <switch>
+/* Settings(voice) */
+Switch setting_voice
+/* Settings(ESP led) */
+Dimmer setting_led <slider> {mqtt=">[<broker>:toIoT/esp0:command:*:MAP(led.map)]"}

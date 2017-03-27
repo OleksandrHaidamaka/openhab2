@@ -4,15 +4,16 @@ sitemap home label="Умный ДОМ"
 	{
 		Text label="Свет" icon="light"
 		{
-			Switch item=hall_light_all   label="Весь" mappings=[OFF="OFF", ON="ON"]
-			Switch item=hall_light_luster_all label="Люстра" mappings=[OFF="OFF", ON="ON"]
-			Group  item=hall_light_luster_all label="Выбор"
+			Switch item=hall_light_all        label="Весь"     mappings=[OFF="OFF", ON="ON"]
+			Switch item=hall_light_luster_all label="Люстра"   mappings=[OFF="OFF", ON="ON"]
+			Switch item=hall_light_luster_0   label="Холодный"
+			Switch item=hall_light_luster_1   label="Теплый"
 		}
 	}
 	
 	Text label="Настройки" icon="chart"
 	{
-		Switch item=setting_voice
-		Slider item=setting_led
+		Switch item=setting_voice label="Голос"
+		Slider item=setting_led   label="ESP led"
 	}
 }
