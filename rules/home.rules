@@ -4,9 +4,10 @@ rule "Initialize light states"
 when
 	System started
 then
-	sendCommand(mqtt_pub_esp0, "update")
-	postUpdate(setting_voice, set_voise)
 	say("добро пожаловать в умный дом")
+	postUpdate(setting_voice, set_voise)	
+	Thread::sleep(100)
+	sendCommand(mqtt_pub_esp0, "update")
 end
 
 rule "MQTT sub esp0"
@@ -17,11 +18,19 @@ then
 	var json = mqtt_sub_esp0.state.toString
 	var id = transform("JSONPATH","$.light",json)
 	var state = transform("JSONPATH","$.state",json)
-	if((id != null) && (state != null)) postUpdate("hall_light_luster_"+id, state)
+	if((id != null) && (state != null)) 
+	{
+		postUpdate("hall_light_luster_"+id, state)
+		Thread::sleep(10)
+	}
 	
 	/* update ESP led status */
 	var dim = transform("JSONPATH","$.led",json)
-	if(dim != null) postUpdate("setting_led", dim)
+	if(dim != null) 
+	{
+		postUpdate("setting_led", dim)
+		Thread::sleep(10)
+	}		
 end
 
 rule "Setting_voice"
