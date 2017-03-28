@@ -4,9 +4,9 @@ rule "Initialize light states"
 when
 	System started
 then
-	say("добро пожаловать в умный дом")
-	postUpdate(mqtt_pub_esp0, "update")
+	sendCommand(mqtt_pub_esp0, "update")
 	postUpdate(setting_voice, set_voise)
+	say("добро пожаловать в умный дом")
 end
 
 rule "MQTT sub esp0"
