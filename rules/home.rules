@@ -8,6 +8,7 @@ then
 	postUpdate(setting_voice, set_voise)	
 	Thread::sleep(100)
 	sendCommand(mqtt_pub_esp0, "update")
+	sendTelegram("bot1", "Hello from OpenHAB2 :)")
 end
 
 rule "MQTT sub esp0"
