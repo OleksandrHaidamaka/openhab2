@@ -1,3 +1,4 @@
+var String set_alarm = "OFF"
 var String set_voise = "OFF"
 
 rule "Initialize light states"
@@ -5,33 +6,69 @@ when
 	System started
 then
 	say("добро пожаловать в умный дом")
-	postUpdate(setting_voice, set_voise)	
-	Thread::sleep(100)
-	sendCommand(mqtt_pub_esp0, "update")
-	sendTelegram("bot1", "Hello from OpenHAB2 :)")
+	sendTelegram("smart_home_bot", "Привет из OpenHAB2 :)")
+
+	postUpdate(setting_alarm, set_alarm)
+	postUpdate(setting_voice, set_voise)
+	
+	sendCommand(mqtt_pub_esp0, "get_status")
+	
 end
 
 rule "MQTT sub esp0"
 when
 	Item mqtt_sub_esp0 received update
 then
-	/* update light statuses */
 	var json = mqtt_sub_esp0.state.toString
-	var id = transform("JSONPATH","$.light",json)
+	
+	/* update light statuses */
+	var id = transform("JSONPATH","$.bt_relay",json)
 	var state = transform("JSONPATH","$.state",json)
-	if((id != null) && (state != null)) 
-	{
-		postUpdate("hall_light_luster_"+id, state)
-		Thread::sleep(10)
-	}
+	if((id != null) && (state != null)) postUpdate("hall_light_luster_"+id, state)
 	
 	/* update ESP led status */
 	var dim = transform("JSONPATH","$.led",json)
-	if(dim != null) 
+	if(dim != null) postUpdate("setting_led", dim)
+end
+
+rule "hall light luster 0"
+when
+	Item hall_light_luster_0 received command
+then
+	if(set_alarm == "ON")
 	{
-		postUpdate("setting_led", dim)
-		Thread::sleep(10)
-	}		
+		say("У вас есть десять секунд, чтобы покинуть квартиру")
+		if(receivedCommand == ON) sendTelegram("smart_home_bot", "Тревога! Холодный свет включен.")
+		else sendTelegram("smart_home_bot", "Тревога! Холодный свет выключен.")
+	}
+end
+
+rule "hall light luster 1"
+when
+	Item hall_light_luster_1 received command
+then
+	if(set_alarm == "ON")
+	{
+		say("У вас есть десять секунд, чтобы покинуть квартиру")
+		if(receivedCommand == ON) sendTelegram("smart_home_bot", "Тревога! Теплый свет включен.")
+		else sendTelegram("smart_home_bot", "Тревога! Теплый свет выключен.")
+	}
+end
+
+rule "Setting_alarm"
+when
+	Item setting_alarm received command
+then
+	if(receivedCommand == ON)
+	{
+		set_alarm = "ON"
+		if(set_voise == "ON") say("сигнализация включена")
+	}
+	else
+	{ 
+		set_alarm = "OFF"
+		if(set_voise == "ON") say("сигнализация выключена")
+	}
 end
 
 rule "Setting_voice"

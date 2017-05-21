@@ -13,7 +13,8 @@ sitemap home label="Умный ДОМ"
 	
 	Text label="Настройки" icon="chart"
 	{
-		Switch item=setting_voice label="Голос"
-		Slider item=setting_led   label="ESP led"
+		Switch item=setting_alarm label="Сигнализация"
+		Switch item=setting_voice label="Озвучивание"
+		Slider item=setting_led   label="esp8266 led"
 	}
 }

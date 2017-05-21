@@ -1,2 +1,2 @@
-ON={"light": 1, "state": "ON"}
-OFF={"light": 1, "state": "OFF"}
+ON={"bt_relay": 1, "state": "ON"}
+OFF={"bt_relay": 1, "state": "OFF"}
