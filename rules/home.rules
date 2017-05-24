@@ -36,8 +36,8 @@ then
 			alarm_msg_flag = false
 			say("Немедленно покиньте квартиру")
 			sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")
-			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 0, \"mode\": \"alarm\"")
-			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 1, \"mode\": \"alarm\"")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		}
 		else
 		{
