@@ -1,6 +1,4 @@
-var alarm_msg_flag = true
-var String set_alarm = "OFF"
-var String set_voise = "OFF"
+var panic_flag = false
 
 rule "Initialize light states"
 when
@@ -9,10 +7,10 @@ then
 	say("Добро пожаловать в умный дом.")
 	sendTelegram("smart_home_bot", "Добро пожаловать в умный дом.")
 
-	postUpdate(setting_alarm, set_alarm)
-	postUpdate(setting_voice, set_voise)
+	postUpdate(setting_alarm, OFF)
+	postUpdate(setting_voice, OFF)
 	
-	sendCommand(mqtt_pub_esp0, "status")
+	sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
 	
 end
 
@@ -29,20 +27,25 @@ then
 	var dim = transform("JSONPATH","$.led",json)
 	if(dim != null) postUpdate("setting_led", dim)	
 	
-	if(set_alarm == "ON")
+	if(setting_alarm.state.toString == "ON")
 	{
-		if(alarm_msg_flag == true)
+		if(panic_flag == false)
 		{
-			alarm_msg_flag = false
+			panic_flag = true
 			say("Немедленно покиньте квартиру")
 			sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}") Thread::sleep(250)
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}") Thread::sleep(250)
 		}
 		else
 		{
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")			
+			if((id != null) && (state != null))
+			{
+				panic_flag = false
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}") Thread::sleep(250)
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}") Thread::sleep(250)
+				sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
+			}
 		}
 	}
 	else
@@ -56,16 +59,20 @@ rule "Setting_alarm"
 when
 	Item setting_alarm received command
 then
-	alarm_msg_flag = true
 	if(receivedCommand == ON)
 	{
-		set_alarm = "ON"
-		if(set_voise == "ON") say("сигнализация включена")
+		if(setting_voice.state.toString == "ON") say("сигнализация включена")
 	}
 	else
 	{ 
-		set_alarm = "OFF"
-		if(set_voise == "ON") say("сигнализация выключена")
+		if(panic_flag == true)
+		{
+			panic_flag = false
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}") Thread::sleep(250)
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}") Thread::sleep(250)
+			sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
+		}
+		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
 	}
 end
 
@@ -73,16 +80,8 @@ rule "Setting_voice"
 when
 	Item setting_voice received command
 then
-	if(receivedCommand == ON)
-	{
-		set_voise = "ON"
-		say("голосовая функция включена")
-	}
-	else
-	{ 
-		set_voise = "OFF"
-		say("голосовая функция выключена")
-	}
+	if(receivedCommand == ON) say("голосовая функция включена")
+	else say("голосовая функция выключена")
 end
 
 rule "Voice control"
@@ -154,11 +153,11 @@ then
 
 	if(answer == null)
 	{
-		if(set_voise == "ON") say("неизвестная команда")
+		if(setting_voice.state.toString == "ON") say("неизвестная команда")
 	}
 	else
 	{
-		if(set_voise == "ON") say(answer_beg + " " + answer)
+		if(setting_voice.state.toString == "ON") say(answer_beg + " " + answer)
 		sendCommand(item, state)
 	}
 end
