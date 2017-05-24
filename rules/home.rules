@@ -41,8 +41,8 @@ then
 		}
 		else
 		{
-			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 0, \"mode\": \"normal\"")
-			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 1, \"mode\": \"normal\"")			
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")			
 		}
 	}
 	else
