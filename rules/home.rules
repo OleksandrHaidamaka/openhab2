@@ -12,7 +12,7 @@ then
 	postUpdate(setting_alarm, set_alarm)
 	postUpdate(setting_voice, set_voise)
 	
-	sendCommand(mqtt_pub_esp0, "get_status")
+	sendCommand(mqtt_pub_esp0, "status")
 	
 end
 
@@ -23,7 +23,7 @@ then
 	var json = mqtt_sub_esp0.state.toString
 	
 	var id = transform("JSONPATH","$.bt_relay",json)
-	var state = transform("JSONPATH","$.state",json)	
+	var state = transform("JSONPATH","$.state",json)
 	
 	/* update ESP led status */
 	var dim = transform("JSONPATH","$.led",json)
@@ -34,9 +34,16 @@ then
 		if(alarm_msg_flag == true)
 		{
 			alarm_msg_flag = false
-			say("У вас есть десять секунд, чтобы покинуть квартиру")
+			say("Немедленно покиньте квартиру")
+			sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")
+			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 0, \"mode\": \"alarm\"")
+			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 1, \"mode\": \"alarm\"")
 		}
-		sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
+		else
+		{
+			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 0, \"mode\": \"normal\"")
+			sendCommand(mqtt_pub_esp0, "\"bt_relay\": 1, \"mode\": \"normal\"")			
+		}
 	}
 	else
 	{
