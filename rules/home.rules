@@ -1,16 +1,18 @@
 var panic_flag = false
+var Timer timer = null
 
-rule "Initialize light states"
+rule "Initializing phase"
 when
 	System started
 then
 	say("Добро пожаловать в умный дом.")
 	sendTelegram("smart_home_bot", "Добро пожаловать в умный дом.")
 
-	postUpdate(setting_alarm, OFF)
+	postUpdate(setting_mode_alarm, OFF)
 	postUpdate(setting_voice, OFF)
 	
-	sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
+	sendCommand(mqtt_pub_esp0, "status") 
+	//Thread::sleep(250)
 	
 end
 
@@ -25,26 +27,38 @@ then
 	
 	/* update ESP led status */
 	var dim = transform("JSONPATH","$.led",json)
-	if(dim != null) postUpdate("setting_led", dim)	
+	if(dim != null) postUpdate("setting_led", dim)
 	
-	if(setting_alarm.state.toString == "ON")
+	if(hall_light_mode_sos.state.toString == "ON")
+	{
+		sendCommand(hall_light_mode_sos, OFF)
+	}
+	else if(setting_mode_alarm.state.toString == "ON")
 	{
 		if(panic_flag == false)
 		{
+			if(timer==null)
+				timer = createTimer(now.plusSeconds(10)) [|sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")] // + сирена
+			else
+				timer.reschedule(now.plusSeconds(10))
+				
 			panic_flag = true
-			say("Немедленно покиньте квартиру")
-			sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}") Thread::sleep(250)
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}") Thread::sleep(250)
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		}
 		else
 		{
 			if((id != null) && (state != null))
 			{
+				if(timer!=null) 
+				{
+					timer.cancel
+					timer = null
+				}
 				panic_flag = false
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}") Thread::sleep(250)
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}") Thread::sleep(250)
-				sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+				sendCommand(mqtt_pub_esp0, "status")
 			}
 		}
 	}
@@ -55,12 +69,13 @@ then
 	}
 end
 
-rule "Setting_alarm"
+rule "setting_mode_alarm"
 when
-	Item setting_alarm received command
+	Item setting_mode_alarm received command
 then
 	if(receivedCommand == ON)
 	{
+		if(hall_light_mode_sos.state.toString == "ON") sendCommand(hall_light_mode_sos, OFF)
 		if(setting_voice.state.toString == "ON") say("сигнализация включена")
 	}
 	else
@@ -68,11 +83,30 @@ then
 		if(panic_flag == true)
 		{
 			panic_flag = false
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}") Thread::sleep(250)
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}") Thread::sleep(250)
-			sendCommand(mqtt_pub_esp0, "status") Thread::sleep(250)
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "status")
 		}
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
+	}
+end
+
+rule "hall_light_mode_sos"
+when
+	Item hall_light_mode_sos received command
+then
+	if(receivedCommand == ON)
+	{
+		if(setting_mode_alarm.state.toString == "ON") postUpdate(setting_mode_alarm, OFF)
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
+		sendCommand(mqtt_pub_esp0, "status")
+	}
+	else
+	{
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		sendCommand(mqtt_pub_esp0, "status")
 	}
 end
 

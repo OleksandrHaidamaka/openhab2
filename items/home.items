@@ -7,6 +7,8 @@ Group:Switch:OR(ON, OFF) hall_light_luster_all "[(%d)]"  <light> (hall_light_all
 /* Hall lights */
 Switch hall_light_luster_0 <light> (hall_light_luster_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}
 Switch hall_light_luster_1 <light> (hall_light_luster_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light1.map)]"}
+/* Mode (sos) */
+Switch hall_light_mode_sos <siren>
 
 /* MQTT binding for esp0*/
 String mqtt_sub_esp0 "[%s]" {mqtt="<[<broker>:from/esp0:state:default]"}
@@ -16,7 +18,7 @@ String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:to/esp0:command:*:default]"}
 String VoiceCommand
 
 /* Settings(alarm) */
-Switch setting_alarm <siren>
+Switch setting_mode_alarm <siren>
 /* Settings(voice) */
 Switch setting_voice <soundvolume>
 /* Settings(ESP led) */
