@@ -5,15 +5,12 @@ rule "Initializing phase"
 when
 	System started
 then
-	say("Добро пожаловать в умный дом.")
+	say("добро пожаловать в умный дом")
 	sendTelegram("smart_home_bot", "Добро пожаловать в умный дом.")
 
-	postUpdate(setting_mode_alarm, OFF)
 	postUpdate(setting_voice, OFF)
-	
+	postUpdate(setting_mode_alarm, OFF)
 	sendCommand(mqtt_pub_esp0, "status") 
-	//Thread::sleep(250)
-	
 end
 
 rule "MQTT sub esp0"
@@ -49,6 +46,7 @@ then
 			panic_flag = true
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
+			say("Немедленно покинь квартиру")
 		}
 	}
 	else
@@ -79,6 +77,7 @@ then
 			panic_flag = false
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			Thread::sleep(250)
 			sendCommand(mqtt_pub_esp0, "status")
 		}
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
@@ -94,12 +93,12 @@ then
 		if(setting_mode_alarm.state.toString == "ON") postUpdate(setting_mode_alarm, OFF)
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
-		sendCommand(mqtt_pub_esp0, "status")
 	}
 	else
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		Thread::sleep(250)
 		sendCommand(mqtt_pub_esp0, "status")
 	}
 end
