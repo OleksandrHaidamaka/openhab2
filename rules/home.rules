@@ -10,7 +10,7 @@ then
 
 	postUpdate(setting_voice, OFF)
 	postUpdate(setting_mode_alarm, OFF)
-	sendCommand(mqtt_pub_esp0, "status") 
+	sendCommand(mqtt_pub_esp0, "status")
 end
 
 rule "MQTT sub esp0"
@@ -77,8 +77,6 @@ then
 			panic_flag = false
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-			Thread::sleep(250)
-			sendCommand(mqtt_pub_esp0, "status")
 		}
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
 	}
@@ -98,8 +96,6 @@ then
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-		Thread::sleep(250)
-		sendCommand(mqtt_pub_esp0, "status")
 	}
 end
 
