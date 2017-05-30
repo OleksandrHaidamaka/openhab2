@@ -1,4 +1,4 @@
-var panic_flag = false
+var panic_mode = false
 var Timer timer = null
 
 rule "Initializing phase"
@@ -21,29 +21,25 @@ then
 	
 	var id = transform("JSONPATH","$.bt_relay",json)
 	var state = transform("JSONPATH","$.state",json)
+	var mode = transform("JSONPATH","$.mode",json)
 	
 	/* update ESP led status */
 	var dim = transform("JSONPATH","$.led",json)
 	if(dim != null) postUpdate("setting_led", dim)
 	
-	if(hall_light_mode_sos.state.toString == "ON")
+	if((id != null) && (mode == "sos")) sendCommand(hall_light_mode_sos, OFF)
+	if((id != null) && (mode == "alarm" || mode == "panic")) sendCommand(setting_mode_alarm, OFF)	
+
+	if(setting_mode_alarm.state.toString == "ON")
 	{
-		if((id != null) && (state != null)) sendCommand(hall_light_mode_sos, OFF)
-	}
-	else if(setting_mode_alarm.state.toString == "ON")
-	{
-		if(panic_flag)
-		{
-			if((id != null) && (state != null)) sendCommand(setting_mode_alarm, OFF)
-		}
-		else
+		if(panic_mode == false)
 		{
 			if(timer==null)
 				timer = createTimer(now.plusSeconds(10)) [|sendTelegram("smart_home_bot", "Тревога. Посторонний в квартире!")] // + сирена
 			else
 				timer.reschedule(now.plusSeconds(10))
 				
-			panic_flag = true
+			panic_mode = true
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 			say("Немедленно покинь квартиру")
@@ -62,22 +58,23 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if(hall_light_mode_sos.state.toString == "ON") sendCommand(hall_light_mode_sos, OFF)
+		if(hall_light_mode_sos.state.toString == "ON") postUpdate(hall_light_mode_sos, OFF)
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		if(setting_voice.state.toString == "ON") say("сигнализация включена")
 	}
 	else
-	{ 
-		if(panic_flag == true)
+	{
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		panic_mode = false
+		
+		if(timer!=null) 
 		{
-			if(timer!=null) 
-			{
-				timer.cancel
-				timer = null
-			}
-			panic_flag = false
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			timer.cancel
+			timer = null
 		}
+			
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
 	}
 end
