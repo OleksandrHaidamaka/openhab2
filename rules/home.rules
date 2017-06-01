@@ -25,12 +25,6 @@ then
 	var mode_current = transform("JSONPATH","$.mode_current",json)
 	var mode_requested = transform("JSONPATH","$.mode_requested",json)
 	
-	logInfo( "mode_current", "mode_current =" + mode_current);
-	logInfo( "mode_requested", "mode_requested =" + mode_requested);
-	
-	logInfo( "mode_current", "mode_current =" + mode_current.toString);
-	logInfo( "mode_requested", "mode_requested =" + mode_requested.toString);
-	
 	/* update ESP led status */
 	if(dim != null)
 	{
