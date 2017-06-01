@@ -39,6 +39,7 @@ then
 		case "sos":
 			sendCommand(hall_light_mode_sos, OFF)
 		case "alarm":
+		{
 			switch mode_requested
 			{
 				case "normal":
@@ -52,7 +53,9 @@ then
 					else timer_voice.reschedule(now.plusSeconds(3))
 				}
 			}
+		}
 		case "panic":
+		{
 			switch mode_requested
 			{
 				case "normal":
@@ -60,6 +63,7 @@ then
 				case "panic":
 					sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
 			}
+		}
 	}
 end
 
