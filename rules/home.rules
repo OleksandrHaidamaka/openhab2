@@ -39,31 +39,18 @@ then
 		case "sos":
 			sendCommand(hall_light_mode_sos, OFF)
 		case "alarm":
-		{
-			switch mode_requested
+			if(mode_requested == "normal") sendCommand(setting_mode_alarm, OFF)
+			else
 			{
-				case "normal":
-					sendCommand(setting_mode_alarm, OFF)
-				case "alarm":
-				{
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
-					sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
-					if(timer_voice==null) timer_voice = createTimer(now.plusSeconds(3)) [ | say("Немедленно покинь квартиру")]
-					else timer_voice.reschedule(now.plusSeconds(3))
-				}
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
+				sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
+				if(timer_voice==null) timer_voice = createTimer(now.plusSeconds(3)) [ | say("Немедленно покинь квартиру")]
+				else timer_voice.reschedule(now.plusSeconds(3))
 			}
-		}
 		case "panic":
-		{
-			switch mode_requested
-			{
-				case "normal":
-					sendCommand(setting_mode_alarm, OFF)
-				case "panic":
-					sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
-			}
-		}
+			if(mode_requested == "normal") sendCommand(setting_mode_alarm, OFF)
+			else sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
 	}
 end
 
