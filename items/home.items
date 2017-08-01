@@ -1,7 +1,7 @@
 Group light_all <light>
 
 /* active groups */
-Group:Switch:OR(ON, OFF) hall_light_all        "[(%d)]"  <light> (light_all)
+Group:Switch:OR(ON, OFF) hall_light_all    <light> (light_all)
 
 /* Hall lights */
 Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}

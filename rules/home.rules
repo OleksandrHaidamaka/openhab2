@@ -9,6 +9,7 @@ then
 
 	postUpdate(setting_voice, OFF)
 	postUpdate(setting_mode_alarm, OFF)
+	postUpdate(setting_mode_sos, OFF)
 	sendCommand(mqtt_pub_esp0, "status")
 end
 
