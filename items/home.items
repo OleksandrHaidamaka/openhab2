@@ -2,13 +2,10 @@ Group light_all <light>
 
 /* active groups */
 Group:Switch:OR(ON, OFF) hall_light_all        "[(%d)]"  <light> (light_all)
-Group:Switch:OR(ON, OFF) hall_light_luster_all "[(%d)]"  <light> (hall_light_all)
 
 /* Hall lights */
-Switch hall_light_luster_0 <light> (hall_light_luster_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}
-Switch hall_light_luster_1 <light> (hall_light_luster_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light1.map)]"}
-/* Mode (sos) */
-Switch hall_light_mode_sos <siren>
+Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}
+Switch hall_light_luster_1 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light1.map)]"}
 
 /* MQTT binding for esp0*/
 String mqtt_sub_esp0 "[%s]" {mqtt="<[<broker>:from/esp0:state:default]"}
@@ -17,9 +14,11 @@ String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:to/esp0:command:*:default]"}
 /* Voice binding */
 String VoiceCommand
 
-/* Settings(alarm) */
+/* Settings(alarm & sos) */
 Switch setting_mode_alarm <siren>
+Switch setting_mode_sos   <siren>
+
 /* Settings(voice) */
 Switch setting_voice <soundvolume>
-/* Settings(ESP led) */
-Dimmer setting_led <slider> {mqtt=">[<broker>:to/esp0:command:*:MAP(led.map)]"}
+/* Settings(hall led) */
+Switch setting_hall_led <light> {mqtt=">[<broker>:to/esp0:command:*:MAP(led.map)]"}

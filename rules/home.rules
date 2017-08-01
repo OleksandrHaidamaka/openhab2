@@ -18,7 +18,7 @@ when
 then
 	var json = mqtt_sub_esp0.state.toString
 	
-	var dim = transform("JSONPATH","$.led",json)
+	var led = transform("JSONPATH","$.led",json)
 	
 	var id = transform("JSONPATH","$.bt_relay",json)
 	var state = transform("JSONPATH","$.state",json)
@@ -26,18 +26,19 @@ then
 	var mode_requested = transform("JSONPATH","$.mode_requested",json)
 	
 	/* update ESP led status */
-	if(dim != null)
+	if(led != null)
 	{
-		postUpdate("setting_led", dim)
+		postUpdate("setting_hall_led", led)
 		return
 	}
 	
 	switch mode_current
 	{
 		case "normal":
-			if((id != null) && (state != null)) postUpdate("hall_light_luster_"+id, state)
+			if(mode_requested == "normal")	postUpdate("hall_light_luster_"+id, state)
+			else	sendCommand(setting_mode_alarm, ON)
 		case "sos":
-			sendCommand(hall_light_mode_sos, OFF)
+			if(mode_requested == "normal")	sendCommand(setting_mode_sos, OFF)
 		case "alarm":
 			if(mode_requested == "normal") sendCommand(setting_mode_alarm, OFF)
 			else
@@ -60,10 +61,11 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if(hall_light_mode_sos.state.toString == "ON") postUpdate(hall_light_mode_sos, OFF)
+		if(setting_mode_sos.state.toString == "ON") postUpdate(setting_mode_sos, OFF)
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		if(setting_voice.state.toString == "ON") say("сигнализация включена")
+		sendTelegram("smart_home_bot", "Cигнализация включена.")
 	}
 	else
 	{
@@ -74,12 +76,13 @@ then
 			timer_voice.cancel timer_voice = null
 		}
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
+		sendTelegram("smart_home_bot", "Cигнализация выключена.")
 	}
 end
 
-rule "hall_light_mode_sos"
+rule "setting_mode_sos"
 when
-	Item hall_light_mode_sos received command
+	Item setting_mode_sos received command
 then
 	if(receivedCommand == ON)
 	{
@@ -96,7 +99,7 @@ then
 	}
 end
 
-rule "Setting_voice"
+rule "setting_voice"
 when
 	Item setting_voice received command
 then
@@ -104,7 +107,7 @@ then
 	else say("голосовая функция выключена")
 end
 
-rule "Voice control"
+rule "VoiceCommand"
 when
 	Item VoiceCommand received command
 then
@@ -143,7 +146,7 @@ then
 			else if(command.contains("весь"))
 			{
 				item += "all"
-				answer = "весь свет в зале"
+				answer = "свет в зале"
 			}
 			else if(command.contains("холод"))
 			{
@@ -157,7 +160,7 @@ then
 			}
 			else 
 			{
-				item += "luster_all"
+				item += "all"
 				answer = "свет в зале"
 			}
 		}
