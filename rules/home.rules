@@ -23,6 +23,7 @@ then
 	
 	var id = transform("JSONPATH","$.bt_relay",json)
 	var state = transform("JSONPATH","$.state",json)
+	
 	var mode_current = transform("JSONPATH","$.mode_current",json)
 	var mode_requested = transform("JSONPATH","$.mode_requested",json)
 	
@@ -33,15 +34,17 @@ then
 		return
 	}
 	
+	/* update Bulb status */
+	postUpdate("hall_light_luster_"+id, state)
+	
 	switch mode_current
 	{
 		case "normal":
-			if(mode_requested == "normal")	postUpdate("hall_light_luster_"+id, state)
-			else	sendCommand(setting_mode_alarm, ON)
+			if (mode_requested == "alarm")	sendCommand(setting_mode_alarm, ON)
 		case "sos":
 			if(mode_requested == "normal")	sendCommand(setting_mode_sos, OFF)
 		case "alarm":
-			if(mode_requested == "normal") sendCommand(setting_mode_alarm, OFF)
+			if(mode_requested == "normal")	sendCommand(setting_mode_alarm, OFF)
 			else
 			{
 				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
