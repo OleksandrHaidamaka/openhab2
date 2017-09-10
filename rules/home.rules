@@ -1,5 +1,5 @@
 var Timer timer_voice = null
-val String[] old_state_esp0 = newArrayOfSize(2)
+val old_state_esp0 = newArrayList(null, null)
 
 rule "Initializing phase"
 when
@@ -32,6 +32,8 @@ then
 	
 	var mode_current = transform("JSONPATH","$.mode_current",json)
 	var mode_requested = transform("JSONPATH","$.mode_requested",json)
+	
+	//logError("log", "id = " + id + " id_int = " + id_int + "\n")
 	
 	/* update ESP led status */
 	if(led != null)
@@ -68,7 +70,6 @@ then
 	}
 	
 	old_state_esp0.add(id_int, state)
-	
 end
 
 rule "setting_mode_alarm"
