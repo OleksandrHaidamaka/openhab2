@@ -1,5 +1,6 @@
 var Timer timer_voice = null
-val old_state_esp0 = newArrayList(null, null)
+var oh_init = false
+//val old_state_esp0 = newArrayList(null, null)
 
 rule "Initializing phase"
 when
@@ -8,9 +9,9 @@ then
 	say("добро пожаловать в умный дом")
 	sendTelegram("smart_home_bot", "Добро пожаловать в умный дом.")
 
-	postUpdate(setting_voice, OFF)
-	postUpdate(setting_mode_alarm, OFF)
-	postUpdate(setting_mode_sos, OFF)
+	postUpdate(setting_voice, ON)
+//	postUpdate(setting_mode_alarm, OFF)
+//	postUpdate(setting_mode_sos, OFF)
 	sendCommand(mqtt_pub_esp0, "status")
 end
 
@@ -20,67 +21,134 @@ when
 then
 	var json = mqtt_sub_esp0.state.toString
 	
-	var led = transform("JSONPATH","$.led",json)
-	
 	var id = transform("JSONPATH","$.bt_relay",json)
 	var state = transform("JSONPATH","$.state",json)
-	
-	var id_int = 0
-	
-	if(id == '0') id_int = 0
-	else id_int = 1
-	
 	var mode_current = transform("JSONPATH","$.mode_current",json)
 	var mode_requested = transform("JSONPATH","$.mode_requested",json)
+	var mqtt_reason = transform("JSONPATH","$.mqtt_reason",json)
 	
-	//logError("log", "id = " + id + " id_int = " + id_int + "\n")
-	
-	/* update ESP led status */
-	if(led != null)
-	{
-		postUpdate("setting_hall_led", led)
-		return
-	}
-	
-	/* update Bulb status */
-	postUpdate("hall_light_luster_"+id, state)
+	var led = transform("JSONPATH","$.led",json)
 	
 	switch mode_current
 	{
 		case "normal":
-			if (mode_requested == "alarm")	sendCommand(setting_mode_alarm, ON)
-		case "sos":
-			if(mode_requested == "normal")	sendCommand(setting_mode_sos, OFF)
-		case "alarm":
-			if(mode_requested == "normal")	sendCommand(setting_mode_alarm, OFF)
-			else
+			switch mode_requested
 			{
-				if(old_state_esp0.get(id_int) != state)
+				case "normal":
 				{
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
-					sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
-					if(timer_voice==null) timer_voice = createTimer(now.plusSeconds(3)) [ | playSound("panic.mp3")]
-					else timer_voice.reschedule(now.plusSeconds(3))
+					if(setting_mode_sos.state.toString == "ON")
+					{
+						sendCommand(setting_mode_sos, ON)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+					else if(setting_mode_alarm.state.toString == "ON")
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, ON)
+					}
+					else
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+				}
+				case "alarm":
+					if((mqtt_reason == "event") || (oh_init == false))
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, ON)
+					}
+			}
+		case "sos":
+			switch mode_requested
+			{
+				case "normal":
+					if((mqtt_reason == "event") || (oh_init == false))
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+				case "sos":
+					{
+						sendCommand(setting_mode_sos, ON)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+			}
+		case "alarm":
+			switch mode_requested
+			{
+				case "normal":
+					if((mqtt_reason == "event") || (oh_init == false))
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+				case "alarm":
+				{
+					if((mqtt_reason == "event"))
+					{
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
+						sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
+						if(timer_voice==null) timer_voice = createTimer(now.plusSeconds(3)) [ | playSound("panic.mp3")]
+						else timer_voice.reschedule(now.plusSeconds(3))
+					}
+					else
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, ON)
+					}
 				}
 			}
 		case "panic":
-			if(mode_requested == "normal") sendCommand(setting_mode_alarm, OFF)
-			else sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
+			switch mode_requested
+			{
+				case "normal":
+					if((mqtt_reason == "event") || (oh_init == false))
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, OFF)
+					}
+				case "panic":
+				{
+					if((mqtt_reason == "event"))
+					{
+						sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
+					}
+					else if(oh_init == false)
+					{
+						sendCommand(setting_mode_sos, OFF)
+						sendCommand(setting_mode_alarm, ON)
+					}
+				}
+			}
 	}
 	
-	old_state_esp0.add(id_int, state)
+	/* update Bulb status */
+	if(id != null)
+	{
+		postUpdate("hall_light_luster_"+id, state)
+		oh_init = true
+	}
+	
+	/* update ESP led status */
+	if(led != null) postUpdate("setting_hall_led", led)
+	
+	//logError("log", "hello world\n")
 end
 
 rule "setting_mode_alarm"
 when
 	Item setting_mode_alarm received command
 then
+
+	if(setting_mode_alarm.state.toString == receivedCommand) return;
+
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_sos.state.toString == "ON") postUpdate(setting_mode_sos, OFF)
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
+		
 		if(setting_voice.state.toString == "ON") say("сигнализация включена")
 		sendTelegram("smart_home_bot", "Cигнализация включена.")
 	}
@@ -88,10 +156,8 @@ then
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-		if(timer_voice!=null) 
-		{
-			timer_voice.cancel timer_voice = null
-		}
+		if(timer_voice!=null) timer_voice.cancel timer_voice = null
+		
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
 		sendTelegram("smart_home_bot", "Cигнализация выключена.")
 	}
@@ -101,17 +167,21 @@ rule "setting_mode_sos"
 when
 	Item setting_mode_sos received command
 then
+
+	if(setting_mode_sos.state.toString == receivedCommand) return;
+	
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_alarm.state.toString == "ON") postUpdate(setting_mode_alarm, OFF)
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
+		
 		if(setting_voice.state.toString == "ON") say("режим сос включен")
 	}
 	else
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		
 		if(setting_voice.state.toString == "ON") say("режим сос выключен")
 	}
 end
