@@ -1,5 +1,6 @@
 var Timer timer_alarm_voice = null
 var Timer timer_alarm_activated = null
+var Timer timer_alarm_sirena = null
 
 var oh_init = false
 var alarm_activated = false
@@ -77,8 +78,15 @@ then
 						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
 						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
 						sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
-						if(timer_alarm_voice==null) timer_alarm_voice = createTimer(now.plusSeconds(3)) [ | playSound("panic.mp3")]
-						else timer_alarm_voice.reschedule(now.plusSeconds(3))
+
+						if(timer_alarm_sirena==null) timer_alarm_sirena = createTimer(now.plusSeconds(15))
+						[|
+							// включаем сирену
+						]
+						else timer_alarm_sirena.reschedule(now.plusSeconds(15))
+						
+						if(timer_alarm_voice==null) timer_alarm_voice = createTimer(now.plusSeconds(8)) [ | playSound("panic.mp3")]
+						else timer_alarm_voice.reschedule(now.plusSeconds(8))
 					}
 					else if(oh_init == false) sendCommand(setting_mode_alarm, ON)
 				}
@@ -142,17 +150,23 @@ then
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
 		
-		if(timer_alarm_voice != null)
-		{
-			timer_alarm_voice.cancel
-			timer_alarm_voice = null
-		}
-		
 		if(timer_alarm_activated != null)
 		{
 			timer_alarm_activated.cancel
 			timer_alarm_activated = null
 			alarm_activated = false
+		}
+		
+		if(timer_alarm_sirena != null)
+		{
+			timer_alarm_sirena.cancel
+			timer_alarm_sirena = null
+		}
+		
+		if(timer_alarm_voice != null)
+		{
+			timer_alarm_voice.cancel
+			timer_alarm_voice = null
 		}
 		
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
