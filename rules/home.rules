@@ -141,25 +141,25 @@ rule "setting_mode_alarm"
 when
 	Item setting_mode_alarm received command
 then
-
-	if(setting_mode_alarm.state.toString == receivedCommand) return;
-
-	if(receivedCommand == ON)
+	if(setting_mode_alarm.state.toString != receivedCommand)
 	{
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
-		
-		if(setting_voice.state.toString == "ON") say("сигнализация включена")
-		sendTelegram("smart_home_bot", "Cигнализация включена.")
-	}
-	else
-	{
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-		if(timer_voice!=null) timer_voice.cancel timer_voice = null
-		
-		if(setting_voice.state.toString == "ON") say("сигнализация выключена")
-		sendTelegram("smart_home_bot", "Cигнализация выключена.")
+		if(receivedCommand == ON)
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
+			
+			if(setting_voice.state.toString == "ON") say("сигнализация включена")
+			sendTelegram("smart_home_bot", "Cигнализация включена.")
+		}
+		else
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			if(timer_voice!=null) timer_voice.cancel timer_voice = null
+			
+			if(setting_voice.state.toString == "ON") say("сигнализация выключена")
+			sendTelegram("smart_home_bot", "Cигнализация выключена.")
+		}
 	}
 end
 
@@ -168,21 +168,22 @@ when
 	Item setting_mode_sos received command
 then
 
-	if(setting_mode_sos.state.toString == receivedCommand) return;
-	
-	if(receivedCommand == ON)
+	if(setting_mode_sos.state.toString != receivedCommand)
 	{
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
-		
-		if(setting_voice.state.toString == "ON") say("режим сос включен")
-	}
-	else
-	{
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-		
-		if(setting_voice.state.toString == "ON") say("режим сос выключен")
+		if(receivedCommand == ON)
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
+			
+			if(setting_voice.state.toString == "ON") say("режим сос включен")
+		}
+		else
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			
+			if(setting_voice.state.toString == "ON") say("режим сос выключен")
+		}
 	}
 end
 
