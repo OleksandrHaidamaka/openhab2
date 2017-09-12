@@ -117,7 +117,7 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_sos.state.toString != OFF) sendCommand(setting_mode_sos, OFF)
+		if(setting_mode_sos.state.toString != "OFF") sendCommand(setting_mode_sos, OFF)
 		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
@@ -142,7 +142,7 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_alarm.state.toString != OFF) sendCommand(setting_mode_alarm, OFF)
+		if(setting_mode_alarm.state.toString != "OFF") sendCommand(setting_mode_alarm, OFF)
 		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
