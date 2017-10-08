@@ -14,6 +14,7 @@ then
 
 	postUpdate(setting_voice, ON)
 	sendCommand(mqtt_pub_esp0, "status")
+	sendCommand(mqtt_pub_esp1, "status")
 end
 
 rule "MQTT sub esp0"
@@ -122,14 +123,32 @@ then
 	//logError("log", "hello world\n")
 end
 
+rule "MQTT sub esp1"
+when
+	Item mqtt_sub_esp1 received update
+then
+	var json = mqtt_sub_esp0.state.toString
+	
+	var sw_id = transform("JSONPATH","$.sw",json)
+	
+	if(sw_id != null)
+	{
+		var state = transform("JSONPATH","$.state",json)
+		var mode_current = transform("JSONPATH","$.mode_current",json)
+		var mqtt_reason = transform("JSONPATH","$.mqtt_reason",json)
+		
+		postUpdate("door_exit", state)
+		oh_init = true
+	}	
+	
+end
+
 rule "setting_mode_alarm"
 when
 	Item setting_mode_alarm received command
 then
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_sos.state.toString != "OFF") postUpdate(setting_mode_sos, OFF)
-		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		
@@ -180,8 +199,6 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if(setting_mode_alarm.state.toString != "OFF") postUpdate(setting_mode_alarm, OFF)
-		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
 		
