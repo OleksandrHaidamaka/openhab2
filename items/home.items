@@ -1,7 +1,8 @@
-Group light_all <light>
+Group light_all "On[(%d)]" <light>
 
 /* active groups */
-Group:Switch:OR(ON, OFF) hall_light_all    <light> (light_all)
+Group:Contact:OR(OPEN, CLOSED) door_all "Open[(%d)]" <contact>
+Group:Switch:OR(ON, OFF) hall_light_all "On[(%d)]" <light> (light_all)
 
 /* Hall lights */
 Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}
@@ -15,8 +16,9 @@ String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:to/esp0:command:*:default]"}
 String VoiceCommand
 
 /* Settings(alarm & sos) */
-Switch setting_mode_alarm <siren>
-Switch setting_mode_sos   <siren>
+Switch  setting_mode_alarm <siren>
+Switch  setting_mode_sos   <siren>
+Contact door_exit "Вход [MAP(en.map):%s]"  <contact> (door_all)
 
 /* Settings(voice) */
 Switch setting_voice <soundvolume>
