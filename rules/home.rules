@@ -12,6 +12,8 @@ then
 	say("добро пожаловать в умный дом")
 	sendTelegram("smart_home_bot", "Добро пожаловать в умный дом.")
 
+	postUpdate(setting_mode_sos, OFF)
+	postUpdate(setting_mode_alarm, OFF)
 	postUpdate(setting_voice, ON)
 	sendCommand(mqtt_pub_esp0, "status")
 	sendCommand(mqtt_pub_esp1, "status")
@@ -19,7 +21,7 @@ end
 
 rule "MQTT sub esp0"
 when
-	Item mqtt_sub_esp0 received update
+	Item mqtt_sub_esp0 received update  // bt_relay (2)
 then
 	var json = mqtt_sub_esp0.state.toString
 	
@@ -40,11 +42,6 @@ then
 				{
 					if(setting_mode_sos.state.toString == "ON") sendCommand(setting_mode_sos, ON)
 					else if(setting_mode_alarm.state.toString == "ON") sendCommand(setting_mode_alarm, ON)
-					else if(oh_init == false)
-					{
-						sendCommand(setting_mode_sos, OFF)
-						sendCommand(setting_mode_alarm, OFF)
-					}
 				}
 				case "alarm":
 					if((mqtt_reason == "event") || (oh_init == false)) sendCommand(setting_mode_alarm, ON)
@@ -56,8 +53,8 @@ then
 					if(mqtt_reason == "event") sendCommand(setting_mode_sos, OFF)
 					else if(oh_init == false)
 					{
-						sendCommand(setting_mode_sos, OFF)
-						sendCommand(setting_mode_alarm, OFF)
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
 					}
 				case "sos":
 					if(oh_init == false) sendCommand(setting_mode_sos, ON)
@@ -69,8 +66,8 @@ then
 					if(mqtt_reason == "event") sendCommand(setting_mode_alarm, OFF)
 					else if(oh_init == false)
 					{
-						sendCommand(setting_mode_sos, OFF)
-						sendCommand(setting_mode_alarm, OFF)
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
 					}
 				case "alarm":
 				{
@@ -99,8 +96,8 @@ then
 					if(mqtt_reason == "event") sendCommand(setting_mode_alarm, OFF)
 					else if(oh_init == false)
 					{
-						sendCommand(setting_mode_sos, OFF)
-						sendCommand(setting_mode_alarm, OFF)
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
 					}
 				case "panic":
 				{
@@ -127,7 +124,7 @@ rule "MQTT sub esp1"
 when
 	Item mqtt_sub_esp1 received update
 then
-	var json = mqtt_sub_esp0.state.toString
+	var json = mqtt_sub_esp1.state.toString
 	
 	var sw_id = transform("JSONPATH","$.sw",json)
 	
@@ -137,10 +134,10 @@ then
 		var mode_current = transform("JSONPATH","$.mode_current",json)
 		var mqtt_reason = transform("JSONPATH","$.mqtt_reason",json)
 		
-		postUpdate("door_exit", state)
-		oh_init = true
-	}	
-	
+		if(state == "ON") postUpdate("door_exit", "OPEN")
+		else postUpdate("door_exit", "CLOSED")
+	}
+	oh_init = true
 end
 
 rule "setting_mode_alarm"
