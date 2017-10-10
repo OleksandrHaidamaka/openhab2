@@ -15,6 +15,7 @@ then
 	postUpdate(setting_mode_sos, OFF)
 	postUpdate(setting_mode_alarm, OFF)
 	postUpdate(setting_voice, ON)
+	
 	sendCommand(mqtt_pub_esp0, "status")
 	sendCommand(mqtt_pub_esp1, "status")
 end
@@ -133,6 +134,19 @@ then
 		var state = transform("JSONPATH","$.state",json)
 		var mode_current = transform("JSONPATH","$.mode_current",json)
 		var mqtt_reason = transform("JSONPATH","$.mqtt_reason",json)
+		
+		switch mode_current
+		{
+			case "normal":
+			{
+				if(setting_mode_sos.state.toString == "ON") sendCommand(setting_mode_sos, ON)
+				else if(setting_mode_alarm.state.toString == "ON") sendCommand(setting_mode_alarm, ON)
+			}
+			case "sos":
+			{}
+			case "alarm":
+			{}
+		}
 		
 		if(state == "ON") postUpdate("door_exit", "OPEN")
 		else postUpdate("door_exit", "CLOSED")

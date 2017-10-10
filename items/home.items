@@ -5,14 +5,14 @@ Group:Switch:OR(ON, OFF) hall_light_all "[On (%d)]" <light> (light_all)
 Group:Contact:OR(OPEN, CLOSED) door_all "[Open (%d)]" <door>
 
 /* Hall lights */
-Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light0.map)]"}
-Switch hall_light_luster_1 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(light1.map)]"}
+Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(bt_relay_0.map)]"}
+Switch hall_light_luster_1 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(bt_relay_1.map)]"}
 
 /* MQTT binding for esp0 (HALL LED BULBS)*/
 String mqtt_sub_esp0 "[%s]" {mqtt="<[<broker>:from/esp0:state:default]"}
 String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:to/esp0:command:*:default]"}
 
-/* MQTT binding for esp1* (DOOR+SIRENA)*/
+/* MQTT binding for esp1* (DOOR+SIREN)*/
 String mqtt_sub_esp1 "[%s]" {mqtt="<[<broker>:from/esp1:state:default]"}
 String mqtt_pub_esp1 "[%s]" {mqtt=">[<broker>:to/esp1:command:*:default]"}
 
@@ -25,6 +25,6 @@ Contact door_exit "Вход [MAP(en.map):%s]" <door> (door_all)
 /* Settings(alarm & sos) */
 Switch  setting_mode_sos   <siren>
 Switch  setting_mode_alarm <siren>
-Switch  setting_mode_siren <siren>
+Switch  setting_mode_siren <siren> {mqtt=">[<broker>:to/esp1:command:*:MAP(relay_0.map)]"}
 Switch  setting_voice <soundvolume>
 Switch  setting_hall_led <light> {mqtt=">[<broker>:to/esp0:command:*:MAP(led.map)]"}

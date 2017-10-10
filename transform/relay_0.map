@@ -1,0 +1,2 @@
+ON={"relay": 0, "state": "ON"}
+OFF={"relay": 0, "state": "OFF"}
