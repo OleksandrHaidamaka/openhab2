@@ -19,6 +19,9 @@ String mqtt_pub_esp1 "[%s]" {mqtt=">[<broker>:to/esp1:command:*:default]"}
 /* Voice binding */
 String VoiceCommand
 
+/* Motion detection binding */
+String FoscamMotion "Motion detection [MAP(foscam.map):%s]" <camera> (Status,Test) {http="<[http://192.168.0.201:88/cgi-bin/CGIProxy.fcgi?cmd=getDevState&usr=root&pwd=cfif1987:4000:REGEX(.*?<motionDetectAlarm>(.*?)</motionDetectAlarm>.*)]"}
+
 /* Door exit */
 Contact door_exit "Вход [MAP(en.map):%s]" <door> (door_all)
 

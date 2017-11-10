@@ -20,6 +20,20 @@ then
 	sendCommand(mqtt_pub_esp1, "status")
 end
 
+rule "Foscam Motion"
+when
+	Item FoscamMotion received command
+then
+	if(receivedCommand == "quiet")
+	{
+		logError("log", "quiet\n")
+	}
+	else if(receivedCommand == "movement")
+	{
+		logError("log", "movement\n")
+	}
+end
+
 rule "MQTT sub esp0"
 when
 	Item mqtt_sub_esp0 received update  // bt_relay (2)
