@@ -22,13 +22,16 @@ end
 
 rule "Foscam Motion"
 when
-	Item FoscamMotion received command
+	Item FoscamMotion received update
 then
-	if(receivedCommand == "quiet")
+	var state = FoscamMotion.state.toString
+
+	logError("log", state + "\n")
+	if(state == "quiet")
 	{
 		logError("log", "quiet\n")
 	}
-	else if(receivedCommand == "movement")
+	else if(state == "movement")
 	{
 		logError("log", "movement\n")
 	}
