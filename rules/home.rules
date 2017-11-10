@@ -5,6 +5,8 @@ var Timer timer_alarm_sirena = null
 var oh_init = false
 var alarm_activated = false
 
+var gl_camera_state = null
+
 rule "Initializing phase"
 when
 	System started
@@ -22,16 +24,22 @@ end
 
 rule "Foscam Motion"
 when
-	Item FoscamMotion received command
+	Item FoscamMotion received update
 then
-	logError("log", receivedCommand + "\n")
-	if(receivedCommand == "1")
+	var camera_state = FoscamMotion.state.toString
+	
+	if(gl_camera_state != camera_state)
 	{
-		logError("log", "quiet\n")
-	}
-	else if(receivedCommand == "2")
-	{
-		logError("log", "movement\n")
+		gl_camera_state = camera_state
+		
+		if(camera_state == "1")
+		{
+			logError("log", "quiet\n")
+		}
+		else if(camera_state == "2")
+		{
+			logError("log", "movement\n")
+		}
 	}
 end
 
