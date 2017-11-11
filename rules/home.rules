@@ -1,10 +1,7 @@
-var Timer timer_alarm_voice = null
 var Timer timer_alarm_activated = null
 var Timer timer_alarm_sirena = null
 
-var oh_init = false
-var alarm_activated = false
-
+var gl_alarm_activated = false
 var gl_camera_state = null
 
 rule "Initializing phase"
@@ -19,7 +16,6 @@ then
 	postUpdate(setting_voice, ON)
 	
 	sendCommand(mqtt_pub_esp0, "status")
-	sendCommand(mqtt_pub_esp1, "status")
 end
 
 rule "Foscam Motion"
@@ -32,13 +28,18 @@ then
 	{
 		gl_camera_state = camera_state
 		
-		if(camera_state == "1")
+		if(setting_mode_alarm.state.toString == "ON")
 		{
-			logError("log", "quiet\n")
-		}
-		else if(camera_state == "2")
-		{
-			logError("log", "movement\n")
+			if(camera_state == "1")
+			{
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
+			}
+			else if(camera_state == "2")
+			{
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
+			}
 		}
 	}
 end
@@ -62,119 +63,58 @@ then
 		case "normal":
 			switch mode_requested
 			{
-				case "normal":
-				{
-					if(setting_mode_sos.state.toString == "ON") sendCommand(setting_mode_sos, ON)
-					else if(setting_mode_alarm.state.toString == "ON") sendCommand(setting_mode_alarm, ON)
-				}
 				case "alarm":
-					if((mqtt_reason == "event") || (oh_init == false)) sendCommand(setting_mode_alarm, ON)
+					if(mqtt_reason == "event") sendCommand(setting_mode_alarm, ON)
 			}
-		case "sos":
+		case "sensor":
 			switch mode_requested
 			{
 				case "normal":
 					if(mqtt_reason == "event") sendCommand(setting_mode_sos, OFF)
-					else if(oh_init == false)
-					{
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+			}			
+		case "sos":
+			switch mode_requested
+			{
+				case "normal":
+					if(mqtt_reason == "event")
+					{ 
+						sendCommand(setting_mode_sos, OFF)
 					}
-				case "sos":
-					if(oh_init == false) sendCommand(setting_mode_sos, ON)
 			}
 		case "alarm":
 			switch mode_requested
 			{
 				case "normal":
 					if(mqtt_reason == "event") sendCommand(setting_mode_alarm, OFF)
-					else if(oh_init == false)
-					{
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-					}
-				case "alarm":
-				{
-					if((mqtt_reason == "event") && (alarm_activated == true))
-					{
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
-						sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
 
-						if(timer_alarm_sirena==null) timer_alarm_sirena = createTimer(now.plusSeconds(15))
-						[|
-							// включаем сирену
-						]
-						else timer_alarm_sirena.reschedule(now.plusSeconds(15))
-						
-						if(timer_alarm_voice==null) timer_alarm_voice = createTimer(now.plusSeconds(8)) [ | playSound("panic.mp3")]
-						else timer_alarm_voice.reschedule(now.plusSeconds(8))
-					}
-					else if(oh_init == false) sendCommand(setting_mode_alarm, ON)
-				}
+//					if((mqtt_reason == "event") && (gl_alarm_activated == true))
+//					{
+//						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
+//						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
+//
+//						if(timer_alarm_sirena==null) timer_alarm_sirena = createTimer(now.plusSeconds(10))
+//						[|
+//							sendTelegram("smart_home_bot", "Тревога! Посторонний в квартире.")
+//							// включаем сирену
+//						]
+//						else timer_alarm_sirena.reschedule(now.plusSeconds(10))
+//					}
 			}
 		case "panic":
 			switch mode_requested
 			{
 				case "normal":
 					if(mqtt_reason == "event") sendCommand(setting_mode_alarm, OFF)
-					else if(oh_init == false)
-					{
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-					}
-				case "panic":
-				{
-					if((mqtt_reason == "event")) sendTelegram("smart_home_bot", "Тревога! Нажат выключатель в зале.")
-					else if(oh_init == false) sendCommand(setting_mode_alarm, ON)
-				}
 			}
 	}
 	
 	/* update Bulb status */
-	if(id != null)
-	{
-		postUpdate("hall_light_luster_"+id, state)
-		oh_init = true
-	}
+	if(id != null) postUpdate("hall_light_luster_"+id, state)
 	
 	/* update ESP led status */
 	if(led != null) postUpdate("setting_hall_led", led)
 	
 	//logError("log", "hello world\n")
-end
-
-rule "MQTT sub esp1"
-when
-	Item mqtt_sub_esp1 received update
-then
-	var json = mqtt_sub_esp1.state.toString
-	
-	var sw_id = transform("JSONPATH","$.sw",json)
-	
-	if(sw_id != null)
-	{
-		var state = transform("JSONPATH","$.state",json)
-		var mode_current = transform("JSONPATH","$.mode_current",json)
-		var mqtt_reason = transform("JSONPATH","$.mqtt_reason",json)
-		
-		switch mode_current
-		{
-			case "normal":
-			{
-				if(setting_mode_sos.state.toString == "ON") sendCommand(setting_mode_sos, ON)
-				else if(setting_mode_alarm.state.toString == "ON") sendCommand(setting_mode_alarm, ON)
-			}
-			case "sos":
-			{}
-			case "alarm":
-			{}
-		}
-		
-		if(state == "ON") postUpdate("door_exit", "OPEN")
-		else postUpdate("door_exit", "CLOSED")
-	}
-	oh_init = true
 end
 
 rule "setting_mode_alarm"
@@ -194,7 +134,7 @@ then
 			
 			if(setting_voice.state.toString == "ON") say("дом под охраной")
 			sendTelegram("smart_home_bot", "Дом под охраной :)")
-			alarm_activated = true
+			gl_alarm_activated = true
 		]
 		else timer_alarm_activated.reschedule(now.plusSeconds(10))
 	}
@@ -207,19 +147,13 @@ then
 		{
 			timer_alarm_activated.cancel
 			timer_alarm_activated = null
-			alarm_activated = false
+			gl_alarm_activated = false
 		}
 		
 		if(timer_alarm_sirena != null)
 		{
 			timer_alarm_sirena.cancel
 			timer_alarm_sirena = null
-		}
-		
-		if(timer_alarm_voice != null)
-		{
-			timer_alarm_voice.cancel
-			timer_alarm_voice = null
 		}
 		
 		if(setting_voice.state.toString == "ON") say("сигнализация выключена")

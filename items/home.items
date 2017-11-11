@@ -2,7 +2,6 @@ Group light_all "[On (%d)]" <light>
 
 /* active groups */
 Group:Switch:OR(ON, OFF) hall_light_all "[On (%d)]" <light> (light_all)
-Group:Contact:OR(OPEN, CLOSED) door_all "[Open (%d)]" <door>
 
 /* Hall lights */
 Switch hall_light_luster_0 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:command:*:MAP(bt_relay_0.map)]"}
@@ -11,10 +10,6 @@ Switch hall_light_luster_1 <light> (hall_light_all) {mqtt=">[<broker>:to/esp0:co
 /* MQTT binding for esp0 (HALL LED BULBS)*/
 String mqtt_sub_esp0 "[%s]" {mqtt="<[<broker>:from/esp0:state:default]"}
 String mqtt_pub_esp0 "[%s]" {mqtt=">[<broker>:to/esp0:command:*:default]"}
-
-/* MQTT binding for esp1* (DOOR+SIREN)*/
-String mqtt_sub_esp1 "[%s]" {mqtt="<[<broker>:from/esp1:state:default]"}
-String mqtt_pub_esp1 "[%s]" {mqtt=">[<broker>:to/esp1:command:*:default]"}
 
 /* Voice binding */
 String VoiceCommand
