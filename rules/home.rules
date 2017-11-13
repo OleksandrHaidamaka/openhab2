@@ -5,6 +5,7 @@ var Timer timer_motion = null
 
 var gl_alarm_activated = false
 var gl_panic_activated = false
+var gl_motion_activated = false
 var gl_camera_state = null
 
 rule "Initializing phase"
@@ -31,15 +32,22 @@ then
 		{
 			if(setting_mode_motion.state.toString == "ON")
 			{
-				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(15))
-				[|
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
-				]
-				else timer_motion.reschedule(now.plusSeconds(15))
+				if(gl_motion_activated == false)
+				{
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
+				}
 				
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
+				if(gl_motion_activated == true)
+				{
+					if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
+					[|
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
+						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
+						gl_motion_activated = false
+					]
+					else timer_motion.reschedule(now.plusSeconds(10))
+				}
 			}
 			
 			if(setting_mode_alarm.state.toString == "ON")
@@ -209,6 +217,8 @@ then
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		
+		gl_motion_activated = false
 		
 		if(timer_motion != null)
 		{
