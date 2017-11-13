@@ -27,27 +27,17 @@ then
 	{
 		gl_camera_state = camera_state
 
-		if(camera_state == "1") // silent
+		if(camera_state == "2") // movement
 		{
 			if(setting_mode_motion.state.toString == "ON")
 			{
-				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
+				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(15))
 				[|
 					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
 					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
 				]
-				else timer_motion.reschedule(now.plusSeconds(10))
-			}
-		}
-		else if(camera_state == "2") // movement
-		{
-			if(setting_mode_motion.state.toString == "ON")
-			{
-				if(timer_motion != null)
-				{
-					timer_motion.cancel
-					timer_motion = null
-				}
+				else timer_motion.reschedule(now.plusSeconds(15))
+				
 				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
 				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
 			}
