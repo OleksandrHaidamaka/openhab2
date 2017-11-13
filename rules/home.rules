@@ -27,19 +27,29 @@ then
 	{
 		gl_camera_state = camera_state
 
-		if(camera_state == "2") // movement
+		if(camera_state == "1") // silent
 		{
 			if(setting_mode_motion.state.toString == "ON")
 			{
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
-				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
-				
-				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(30))
+				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
 				[|
 					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
 					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
 				]
-				else timer_motion.reschedule(now.plusSeconds(30))
+				else timer_motion.reschedule(now.plusSeconds(10))
+			}
+		}
+		else if(camera_state == "2") // movement
+		{
+			if(setting_mode_motion.state.toString == "ON")
+			{
+				if(timer_motion != null)
+				{
+					timer_motion.cancel
+					timer_motion = null
+				}
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
 			}
 			
 			if(setting_mode_alarm.state.toString == "ON")
@@ -66,7 +76,6 @@ then
 						if(timer_alarm_sirena_off==null) timer_alarm_sirena_off = createTimer(now.plusSeconds(60+10))
 						[|
 							sendCommand(setting_mode_alarm, OFF)
-							sendCommand(setting_mode_alarm, ON)
 						]
 						else timer_alarm_sirena_off.reschedule(now.plusSeconds(60+10))
 					}
