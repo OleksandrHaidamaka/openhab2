@@ -1,19 +1,17 @@
 sitemap home label="Умный ДОМ"
 {
-	Switch item=light_all        label="ВЕСЬ"   mappings=[OFF="OFF", ON="ON"]
 	Switch item=hall_light_all   label="Зал"    mappings=[OFF="OFF", ON="ON"]
 	Text label="Свет" icon="colorlight"
 	{
 		Switch item=hall_light_luster_0   label="Свет №1"
 		Switch item=hall_light_luster_1   label="Свет №2"
 	}
-	Group  item=door_all              label="Двери"
 	Text label="Настройки" icon="chart"
 	{
-		Switch item=setting_mode_sos      label="Sos"          visibility=[setting_mode_alarm != "ON"]
-		Switch item=setting_mode_alarm    label="Сигнализация" visibility=[setting_mode_sos != "ON"]
-		Switch item=setting_mode_siren    label="Сирена"
-		Switch item=setting_voice         label="Озвучивание"
-		Switch item=setting_hall_led      label="LED (зала)"
+		Switch item=setting_mode_alarm       label="Сигнализация"
+		Switch item=setting_mode_motion      label="Датчик движения"
+		Switch item=setting_mode_sos         label="SOS"
+		Switch item=setting_siren            label="Сирена"
+		Switch item=setting_led              label="LED"
 	}
 }
