@@ -25,20 +25,28 @@ then
 	{
 		gl_camera_state = camera_state
 
+		if(camera_state == "1") // silent
+		{
+			if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
+			[|
+				timer_motion = null
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
+			]
+			else timer_motion.reschedule(now.plusSeconds(10))
+		}
 		if(camera_state == "2") // movement
 		{
 			if(setting_mode_motion.state.toString == "ON")
 			{
+				if(timer_motion != null)
+				{
+					timer_motion.cancel
+					timer_motion = null
+				}
+				
 				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
 				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
-					
-				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
-				[|
-					timer_motion = null
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
-				]
-				else timer_motion.reschedule(now.plusSeconds(10))
 			}
 			
 			if(setting_mode_alarm.state.toString == "ON")
@@ -50,7 +58,7 @@ then
 
 					if(timer_alarm_sirena_on==null) timer_alarm_sirena_on = createTimer(now.plusSeconds(10))
 					[|
-						sendTelegram("smart_home_bot", "Тревога! Бандит в квартире :(")
+						sendTelegram("smart_home_bot", "Бандит в квартире :(")
 						sendCommand(mqtt_pub_esp0, "{\"relay\": 0, \"state\": \"ON\"}")
 					]
 					
@@ -185,7 +193,7 @@ then
 		}
 		
 		say("сигнализация выключена")
-		sendTelegram("smart_home_bot", "Cигнализация выключена")
+		sendTelegram("smart_home_bot", "Cигнализация выключена!")
 	}
 end
 
