@@ -16,6 +16,7 @@ String VoiceCommand
 String FoscamMotion "[%s]" {http="<[http://192.168.0.201:88/cgi-bin/CGIProxy.fcgi?cmd=getDevState&usr=root&pwd=cfif1987:4000:REGEX(.*?<motionDetectAlarm>(.*?)</motionDetectAlarm>.*)]"}
 
 /* Settings */
+Switch  setting_test
 Switch  setting_mode_alarm  <siren>
 Switch  setting_mode_motion <motion>
 Switch  setting_mode_sos    <error>

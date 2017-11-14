@@ -8,6 +8,7 @@ sitemap home label="Умный ДОМ"
 	}
 	Text label="Настройки" icon="chart"
 	{
+		Switch item=setting_test             label="test"
 		Switch item=setting_mode_alarm       label="Сигнализация"
 		Switch item=setting_mode_motion      label="Датчик движения"
 		Switch item=setting_mode_sos         label="SOS"

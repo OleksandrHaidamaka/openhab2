@@ -18,6 +18,29 @@ then
 	//logError("log", "Hello World\n")
 end
 
+rule "setting_test"
+when
+	Item setting_test received command
+then
+	
+	if(receivedCommand == ON)
+	{
+		logError("log", "receivedCommand = ON\n")
+		if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
+		[|
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
+			logError("log", "HELLOW FROM TIMER\n")
+		]
+		else
+		{
+			timer_motion.reschedule(now.plusSeconds(10))
+			logError("log", "TEMER WAS rescheduled\n")
+		}
+	}
+end
+
+
 rule "Foscam Motion"
 when
 	Item FoscamMotion received update
@@ -75,7 +98,7 @@ then
 						[|
 							sendCommand(setting_mode_alarm, OFF)
 						]
-						else timer_alarm_sirena_off.reschedule(now.plusSeconds(60+10))
+						else timer_alarm_sirena_off.reschedule(now.plusSeconds(60))
 					}
 				}
 			}
