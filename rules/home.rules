@@ -98,6 +98,30 @@ then
 		postUpdate(setting_mode_alarm, OFF)
 		postUpdate(setting_mode_motion, OFF)
 		postUpdate(setting_mode_sos, OFF)
+		
+		if(timer_alarm_activated != null)
+		{
+			timer_alarm_activated.cancel
+			timer_alarm_activated = null
+		}
+		
+		if(timer_alarm_sirena_on != null)
+		{
+			timer_alarm_sirena_on.cancel
+			timer_alarm_sirena_on = null
+		}
+		
+		if(timer_alarm_sirena_off != null)
+		{
+			timer_alarm_sirena_off.cancel
+			timer_alarm_sirena_off = null
+		}
+		
+		if(timer_motion != null)
+		{
+			timer_motion.cancel
+			timer_motion = null
+		}
 	}
 	
 	if(id != null)  postUpdate("hall_light_luster_"+id, state)
