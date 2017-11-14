@@ -3,9 +3,6 @@ var Timer timer_alarm_sirena_on = null
 var Timer timer_alarm_sirena_off = null
 var Timer timer_motion = null
 
-var gl_alarm_activated = false
-var gl_panic_activated = false
-var gl_motion_activated = false
 var gl_camera_state = null
 
 rule "Initializing phase"
@@ -17,29 +14,6 @@ then
 	sendCommand(mqtt_pub_esp0, "init")
 	//logError("log", "Hello World\n")
 end
-
-rule "setting_test"
-when
-	Item setting_test received command
-then
-	
-	if(receivedCommand == ON)
-	{
-		logError("log", "receivedCommand = ON\n")
-		if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
-		[|
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
-			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
-			logError("log", "HELLOW FROM TIMER\n")
-		]
-		else
-		{
-			timer_motion.reschedule(now.plusSeconds(10))
-			logError("log", "TEMER WAS rescheduled\n")
-		}
-	}
-end
-
 
 rule "Foscam Motion"
 when
@@ -55,51 +29,36 @@ then
 		{
 			if(setting_mode_motion.state.toString == "ON")
 			{
-				if(gl_motion_activated == false)
-				{
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
-					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
-				}
-				
-				if(gl_motion_activated == true)
-				{
-					if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
-					[|
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
-						gl_motion_activated = false
-					]
-					else timer_motion.reschedule(now.plusSeconds(10))
-				}
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"ON\"}")
+				sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"ON\"}")
+					
+				if(timer_motion==null) timer_motion = createTimer(now.plusSeconds(10))
+				[|
+					timer_motion = null
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"state\": \"OFF\"}")
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"state\": \"OFF\"}")
+				]
+				else timer_motion.reschedule(now.plusSeconds(10))
 			}
 			
 			if(setting_mode_alarm.state.toString == "ON")
 			{
-				if(gl_alarm_activated == true)
+				if(timer_alarm_activated == null)
 				{
-					if(gl_panic_activated == false)
-					{
-						gl_panic_activated = true
-						
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
-						sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"panic\"}")
+					sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"panic\"}")
 
-						if(timer_alarm_sirena_on==null) timer_alarm_sirena_on = createTimer(now.plusSeconds(10))
-						[|
-							sendTelegram("smart_home_bot", "Тревога! Бандит в квартире :(")
-							sendCommand(mqtt_pub_esp0, "{\"relay\": 0, \"state\": \"ON\"}")
-						]
-						else timer_alarm_sirena_on.reschedule(now.plusSeconds(10))
-					}
+					if(timer_alarm_sirena_on==null) timer_alarm_sirena_on = createTimer(now.plusSeconds(10))
+					[|
+						sendTelegram("smart_home_bot", "Тревога! Бандит в квартире :(")
+						sendCommand(mqtt_pub_esp0, "{\"relay\": 0, \"state\": \"ON\"}")
+					]
 					
-					if(gl_panic_activated == true)
-					{
-						if(timer_alarm_sirena_off==null) timer_alarm_sirena_off = createTimer(now.plusSeconds(60+10))
-						[|
-							sendCommand(setting_mode_alarm, OFF)
-						]
-						else timer_alarm_sirena_off.reschedule(now.plusSeconds(60))
-					}
+					if(timer_alarm_sirena_off==null) timer_alarm_sirena_off = createTimer(now.plusSeconds(60))
+					[|
+						sendCommand(setting_mode_alarm, OFF)
+					]
+					else timer_alarm_sirena_off.reschedule(now.plusSeconds(60))
 				}
 			}
 		}
@@ -122,6 +81,9 @@ then
 	
 	if(json == "init")
 	{
+		postUpdate(setting_mode_motion_vis, ON)
+		postUpdate(setting_mode_sos_vis, ON)
+
 		postUpdate(setting_mode_alarm, OFF)
 		postUpdate(setting_mode_motion, OFF)
 		postUpdate(setting_mode_sos, OFF)
@@ -173,30 +135,37 @@ then
 	{
 		postUpdate(setting_mode_motion, OFF)
 		postUpdate(setting_mode_sos, OFF)
+		postUpdate(setting_mode_motion_vis, OFF)
+		postUpdate(setting_mode_sos_vis, OFF)
 		
+		if(timer_motion != null)
+		{
+			timer_motion.cancel
+			timer_motion = null
+		}
+
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"alarm\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"alarm\"}")
 		
 		say("сигнализация включена")
-		sendTelegram("smart_home_bot", "Cигнализация включена")
+		sendTelegram("smart_home_bot", "Cигнализация включена!")
 		
 		if(timer_alarm_activated==null) timer_alarm_activated = createTimer(now.plusSeconds(10)) 
 		[|
+			timer_alarm_activated = null
 			say("дом под охраной")
 			sendTelegram("smart_home_bot", "Дом под охраной :)")
-			gl_alarm_activated = true
 		]
-		else timer_alarm_activated.reschedule(now.plusSeconds(10))
 	}
 	else
 	{
+		postUpdate(setting_mode_motion_vis, ON)
+		postUpdate(setting_mode_sos_vis, ON)
+		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"relay\": 0, \"state\": \"OFF\"}")
-		
-		gl_alarm_activated = false
-		gl_panic_activated = false		
-		
+
 		if(timer_alarm_activated != null)
 		{
 			timer_alarm_activated.cancel
@@ -224,15 +193,10 @@ rule "setting_mode_motion"
 when
 	Item setting_mode_motion received command
 then
-	
+	postUpdate(setting_mode_sos, OFF)
+
 	if(receivedCommand == ON)
 	{
-		postUpdate(setting_mode_sos, OFF)
-		if(setting_mode_alarm.state.toString == "ON")
-		{
-			postUpdate(setting_mode_motion, OFF)
-			return
-		}
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"motion\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"motion\"}")
 	}
@@ -240,8 +204,6 @@ then
 	{
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
-		
-		gl_motion_activated = false
 		
 		if(timer_motion != null)
 		{
@@ -257,18 +219,21 @@ when
 then
 	if(receivedCommand == ON)
 	{
-		if((setting_mode_alarm.state.toString == "ON") || (setting_mode_motion.state.toString == "ON"))
-		{
-			postUpdate(setting_mode_sos, OFF)
-			return
-		}		
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"sos\"}")
 		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"sos\"}")
 	}
 	else
 	{
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
-		sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		if(setting_mode_motion.state.toString == "ON")
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"motion\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"motion\"}")
+		}
+		else
+		{
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 0, \"mode\": \"normal\"}")
+			sendCommand(mqtt_pub_esp0, "{\"bt_relay\": 1, \"mode\": \"normal\"}")
+		}
 	}
 end
 

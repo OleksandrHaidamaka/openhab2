@@ -16,9 +16,12 @@ String VoiceCommand
 String FoscamMotion "[%s]" {http="<[http://192.168.0.201:88/cgi-bin/CGIProxy.fcgi?cmd=getDevState&usr=root&pwd=cfif1987:4000:REGEX(.*?<motionDetectAlarm>(.*?)</motionDetectAlarm>.*)]"}
 
 /* Settings */
-Switch  setting_test
 Switch  setting_mode_alarm  <siren>
 Switch  setting_mode_motion <motion>
 Switch  setting_mode_sos    <error>
+
+Switch  setting_mode_motion_vis
+Switch  setting_mode_sos_vis
+
 Switch  setting_siren       <soundvolume> {mqtt=">[<broker>:to/esp0:command:*:MAP(relay_0.map)]"}
 Switch  setting_led         <light>       {mqtt=">[<broker>:to/esp0:command:*:MAP(led.map)]"}
